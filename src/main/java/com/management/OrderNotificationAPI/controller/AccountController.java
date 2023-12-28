@@ -1,16 +1,12 @@
 package com.management.OrderNotificationAPI.controller;
-
 import com.management.OrderNotificationAPI.*;
 import com.management.OrderNotificationAPI.model.Account;
 import com.management.OrderNotificationAPI.model.LoginResponse;
 import com.management.OrderNotificationAPI.model.Response;
 import com.management.OrderNotificationAPI.service.AccountService;
-import javafx.util.Pair;
-import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 
 
 @RestController
@@ -20,7 +16,7 @@ public class AccountController {
     @Autowired
     AccountService accountService;
 
-    @PostMapping("/add")
+    @PostMapping("/register")
     public Response register(@RequestBody Account p) {
         System.out.println("in add person" + p);
         boolean res = accountService.addAccount(p);
