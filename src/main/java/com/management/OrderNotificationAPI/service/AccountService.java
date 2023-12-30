@@ -12,7 +12,7 @@ public class AccountService {
             if(InMemoryDB.accounts.get(p.getUsername()) != null){
                 return false;
             }
-            DB.accounts.put(p.getUsername(), p);
+            InMemoryDB.accounts.put(p.getUsername(), p);
         } catch (Exception e) {
             System.out.println("Exception in addPerson as" + e.getMessage());
             return false;
@@ -22,7 +22,7 @@ public class AccountService {
 
     public Account getAccount(String username) {
         try {
-            return DB.accounts.get(username);
+            return InMemoryDB.accounts.get(username);
         } catch (Exception e) {
             System.out.println("Exception in getPerson as" + e.getMessage());
         }
@@ -31,11 +31,11 @@ public class AccountService {
 
     public Account[] getAllAccounts() {
         try {
-            Set<String> ids = DB.accounts.keySet();
+            Set<String> ids = InMemoryDB.accounts.keySet();
             Account[] p = new Account[ids.size()];
             int i=0;
             for(String id : ids){
-                p[i] = DB.accounts.get(id);
+                p[i] = InMemoryDB.accounts.get(id);
                 i++;
             }
             return p;
