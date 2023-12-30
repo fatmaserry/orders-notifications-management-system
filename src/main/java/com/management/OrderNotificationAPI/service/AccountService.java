@@ -1,16 +1,15 @@
 package com.management.OrderNotificationAPI.service;
-import com.management.OrderNotificationAPI.DB;
+import com.management.OrderNotificationAPI.InMemoryDB;
 import com.management.OrderNotificationAPI.model.Account;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
 @Service
-public class AccountService implements IAccountService{
-    @Override
+public class AccountService {
     public Boolean addAccount(Account p) {
         try {
-            if(DB.accounts.get(p.getUsername()) != null){
+            if(InMemoryDB.accounts.get(p.getUsername()) != null){
                 return false;
             }
             DB.accounts.put(p.getUsername(), p);
@@ -21,7 +20,6 @@ public class AccountService implements IAccountService{
         return true;
     }
 
-    @Override
     public Account getAccount(String username) {
         try {
             return DB.accounts.get(username);
@@ -31,7 +29,6 @@ public class AccountService implements IAccountService{
         return null;
     }
 
-    @Override
     public Account[] getAllAccounts() {
         try {
             Set<String> ids = DB.accounts.keySet();

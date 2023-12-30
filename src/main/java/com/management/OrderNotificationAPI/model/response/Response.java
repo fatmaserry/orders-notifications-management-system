@@ -1,4 +1,4 @@
-package com.management.OrderNotificationAPI.model;
+package com.management.OrderNotificationAPI.model.response;
 
 public class Response {
     private boolean status;

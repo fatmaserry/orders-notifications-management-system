@@ -1,8 +1,7 @@
 package com.management.OrderNotificationAPI.controller;
-import com.management.OrderNotificationAPI.*;
 import com.management.OrderNotificationAPI.model.Account;
-import com.management.OrderNotificationAPI.model.LoginResponse;
-import com.management.OrderNotificationAPI.model.Response;
+import com.management.OrderNotificationAPI.model.response.LoginResponse;
+import com.management.OrderNotificationAPI.model.response.Response;
 import com.management.OrderNotificationAPI.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
