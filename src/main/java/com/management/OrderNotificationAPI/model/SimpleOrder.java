@@ -1,31 +1,20 @@
 package com.management.OrderNotificationAPI.model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
 
 import java.util.ArrayList;
 
-@Getter
 public class SimpleOrder extends Order{
-    private Account account;
+    private String username;
     private ArrayList<Product> products;
     private State state;
     private String location;
     private double shippingFees;
 
-    public SimpleOrder(ArrayList<Product> products,Account account, int ID, String location){
+    public SimpleOrder(ArrayList<Product> products, String username, int ID, String location){
         super(ID, OrderType.SIMPLE);
         this.products = products;
-        this.account = account;
+        this.username = username;
         this.location = location;
         this.shippingFees = 0;
-    }
-
-    public SimpleOrder(SimpleOrder order){
-        super(order.getID(),OrderType.SIMPLE);
-        this.products = order.getProducts();
-        this.account = order.getAccount();
-        this.location = order.getLocation();
-        this.shippingFees = order.getShippingFees();
     }
 
     public double calculateTotalProductCost() {
@@ -37,6 +26,12 @@ public class SimpleOrder extends Order{
         return cost;
     }
 
+    public ArrayList<SimpleOrder> bringSimpleOrders(){
+        ArrayList<SimpleOrder> simpleOrder = new ArrayList<>();
+        simpleOrder.add(this);
+        return simpleOrder;
+    }
+
     public double calculateTotalShipping() {
         return 100;
     }
@@ -45,13 +40,12 @@ public class SimpleOrder extends Order{
         return 1;
     }
 
-
-    public void setShippingFees(double fees) {
+    public void putShippingFees(double fees) {
         this.shippingFees = fees;
     }
 
-    public void setAccount(Account account) {
-        this.account = account;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public void setProducts(ArrayList<Product> products) {
@@ -64,6 +58,26 @@ public class SimpleOrder extends Order{
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public ArrayList<Product> getProducts() {
+        return products;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public double getShippingFees() {
+        return shippingFees;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
 }

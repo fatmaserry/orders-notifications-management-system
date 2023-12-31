@@ -1,4 +1,4 @@
-package com.management.OrderNotificationAPI;
+package com.management.OrderNotificationAPI.repo;
 import com.management.OrderNotificationAPI.model.Account;
 import com.management.OrderNotificationAPI.model.Order;
 import com.management.OrderNotificationAPI.model.Product;

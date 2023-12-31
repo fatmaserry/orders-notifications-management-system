@@ -1,14 +1,13 @@
 package com.management.OrderNotificationAPI.service;
 
-import com.management.OrderNotificationAPI.InMemoryDB;
+import com.management.OrderNotificationAPI.repo.InMemoryDB;
 import com.management.OrderNotificationAPI.model.Account;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
-import java.util.Set;
 
 @Service
 public class AccountService {
+
     public Boolean addAccount(Account p) {
         try {
             if (InMemoryDB.accounts.get(p.getUsername()) != null) {
@@ -33,9 +32,7 @@ public class AccountService {
 
     public ArrayList<Account> getAllAccounts() {
         try {
-            ArrayList<Account> accounts = new ArrayList<>();
-            accounts.addAll(InMemoryDB.accounts.values());
-            return accounts;
+            return new ArrayList<>(InMemoryDB.accounts.values());
         }
         catch (Exception e) {
             System.out.println("Exception in getAllAccounts as" + e.getMessage());
@@ -43,22 +40,19 @@ public class AccountService {
         return null;
     }
 
-    public void deduce(String username, double amount) {
+    public void deduceBalance(String username, double amount) {
         Account account = getAccount(username);
         double newBalance = account.getBalance() - amount;
         account.setBalance(newBalance);
     }
 
-    public void add(String username, double amount) {
+    public void incrementBalance(String username, double amount) {
         Account account = getAccount(username);
         double newBalance = account.getBalance() + amount;
         account.setBalance(newBalance);
     }
 
     public boolean checkBalance(String username, double amount) {
-        Account account = getAccount(username);
-        if (account.getBalance() >= amount)
-            return true;
-        return false;
+        return getAccount(username).getBalance() >= amount;
     }
 }

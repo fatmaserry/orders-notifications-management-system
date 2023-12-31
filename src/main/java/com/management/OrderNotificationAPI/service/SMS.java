@@ -1,6 +1,6 @@
 package com.management.OrderNotificationAPI.service;
 
-import com.management.OrderNotificationAPI.InMemoryDB;
+import com.management.OrderNotificationAPI.repo.InMemoryDB;
 import com.management.OrderNotificationAPI.model.Channel;
 import com.management.OrderNotificationAPI.model.Notification;
 
@@ -15,7 +15,7 @@ public class SMS extends SendingDecorator {
         super.send(notification);
         Notification sendnotification = new Notification(notification);
         sendnotification.setChannel(Channel.SMS);
-        InMemoryDB.createdNotifications.add(notification);
+        InMemoryDB.createdNotifications.add(sendnotification);
         return true;
     }
 }

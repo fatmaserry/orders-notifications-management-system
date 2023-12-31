@@ -11,6 +11,7 @@ public class Response {
     public void setStatus(boolean status) {
         this.status = status;
     }
+
     public String getMessage() {
         return message;
     }

@@ -1,7 +1,7 @@
 package com.management.OrderNotificationAPI.controller;
-import com.management.OrderNotificationAPI.model.Channel;
-import com.management.OrderNotificationAPI.model.Notification;
-import com.management.OrderNotificationAPI.model.Template;
+import com.management.OrderNotificationAPI.model.*;
+import com.management.OrderNotificationAPI.model.request.PlacementNotificationRequest;
+import com.management.OrderNotificationAPI.model.request.ShippmentNotificationRequest;
 import com.management.OrderNotificationAPI.model.response.Response;
 import com.management.OrderNotificationAPI.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +18,23 @@ public class NotificationController {
     @Autowired
     private NotificationService notificationService = new NotificationService();
 
+    @GetMapping("/generate/placement")
+    public Notification generate(@RequestBody PlacementNotificationRequest notificationRequest){
+        return new OrderPlacementNotification(notificationRequest.getReceiver().getLanguage(),
+                Template.OrderPlacement, notificationRequest.getReceiver(), notificationRequest.getProducts());
+    }
+
+    @GetMapping("/generate/shipment")
+    public Notification generate(@RequestBody ShippmentNotificationRequest notificationRequest){
+        return new OrderShippmentNotification(notificationRequest.getReceiver().getLanguage(),
+                Template.OrderShipment,
+                notificationRequest.getReceiver(),
+                notificationRequest.getTotalCost(),
+                notificationRequest.getId());
+    }
+
     @PostMapping("/send")
     public Response send(@RequestBody Notification notification){
-
         Response response = new Response();
 
         if(notificationService.send(notification)){
@@ -35,32 +49,28 @@ public class NotificationController {
         return response;
     }
 
-    @Scheduled(fixedRate = 1000  * 60)
-    public Response schedule() {
+    @Scheduled(fixedRate = 1000 * 60)
+    public void schedule() {
 
         LocalDateTime now = LocalDateTime.now();
         Response response = new Response();
         boolean RemovedFromQueue = false;
 
+
+        ArrayList<Notification>toBeSent = new ArrayList<>();
+
         for (Notification notification : notificationService.getFromQueue())
         {
-            if(now.minusMinutes(2).isAfter(notification.getCreatedAt())) {
-                notificationService.removeFromQueue(notification);
-                notificationService.addSentNotification(notification);
-                RemovedFromQueue = true;
+            if(now.minusMinutes(1).isAfter(notification.getCreatedAt())) {
+                toBeSent.add(notification);
             }
         }
 
-        if(RemovedFromQueue){
-            response.setStatus(true);
-            response.setMessage("Notifications Sent successfully");
+        for (Notification notification: toBeSent){
+            notificationService.removeFromQueue(notification);
+            notificationService.addSentNotification(notification);
+            RemovedFromQueue = true;
         }
-        else{
-            response.setStatus(false);
-            response.setMessage("No Notification sent");
-        }
-
-        return response;
     }
 
     @GetMapping("/get/mostNotifiedEmail")
@@ -73,7 +83,7 @@ public class NotificationController {
                 }
             }
 
-            int maxNotification=0;
+            int maxNotification = 0;
             String MostNotifiedEmail = "";
             for (Map.Entry<String, Integer>m: mp.entrySet()){
                 if(m.getValue() > maxNotification){
@@ -83,6 +93,7 @@ public class NotificationController {
             }
             return MostNotifiedEmail;
     }
+
     @GetMapping("/get/mostNotifiedPhone")
     public String getMostNotifiedPhone() {
 
@@ -135,8 +146,4 @@ public class NotificationController {
         return notificationService.getSentNotifications();
     }
 
-    @PostMapping("/fun")
-    public Notification fun(@RequestBody Notification notification){
-        return notification;
-    }
 }

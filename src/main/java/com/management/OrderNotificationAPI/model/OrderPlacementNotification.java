@@ -5,26 +5,21 @@ import java.util.List;
 
 public class OrderPlacementNotification extends Notification{
 
-    private List<Product>products;
+    public OrderPlacementNotification(){}
 
-    public OrderPlacementNotification(Language language, Template template, Account receiver, List<Product> products) {
+    public OrderPlacementNotification(Language language, Template template, UserInfo receiver, List<Product> products) {
         super(language,template,receiver);
-        String content = "Dear " + receiver.getName() + ", your booking of ";
-        for(Product p: products)
-        {
-            content += p.getName();
-            content += ", ";
+        super.setContent(generateTemplate(receiver, products));
+
+    }
+    public String generateTemplate(UserInfo receiver, List<Product> products){
+        String template = "Dear " + receiver.getName() + ", your booking of ";
+        for(Product p: products) {
+            template += p.getName();
+            template += ", ";
         }
-        content += "is confirmed. thanks for using our store :)";
-        super.setContent(content);
-        this.products = products;
+        template += "is confirmed. thanks for using our store :)";
+        return template;
     }
 
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<Product> products) {
-        this.products = products;
-    }
 }

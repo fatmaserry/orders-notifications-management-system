@@ -1,11 +1,8 @@
 package com.management.OrderNotificationAPI.model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
 
 import java.util.ArrayList;
 
 
-@Getter
 public class CompoundOrder extends Order{
     private ArrayList<Order> orders;
 
@@ -37,7 +34,7 @@ public class CompoundOrder extends Order{
     public double calculateTotalShipping() {
         double totalShippingCost = 0;
         for (Order order: orders) {
-            totalShippingCost += order.calculateTotalShipping();
+            totalShippingCost = Math.max(totalShippingCost, order.calculateTotalShipping());
         }
         return totalShippingCost;
     }
@@ -50,20 +47,16 @@ public class CompoundOrder extends Order{
         return numOfOrders;
     }
 
-    public void setShippingFees(double fees) {
+    public void putShippingFees(double fees) {
         for(Order order: orders){
-            order.setShippingFees(fees);
+            order.putShippingFees(fees);
         }
     }
 
-    public ArrayList<SimpleOrder> getSimpleOrders(){
+    public ArrayList<SimpleOrder> bringSimpleOrders(){
         ArrayList<SimpleOrder> simpleOrders = new ArrayList<>();
         for (Order order: orders) {
-            if (order instanceof SimpleOrder){
-                simpleOrders.add((SimpleOrder) order);
-                continue;
-            }
-            ArrayList<SimpleOrder> ret = order.getSimpleOrders();
+            ArrayList<SimpleOrder> ret = order.bringSimpleOrders();
             simpleOrders.addAll(ret);
         }
         return simpleOrders;
@@ -73,4 +66,6 @@ public class CompoundOrder extends Order{
              this.orders = orders;
     }
 
+    public ArrayList<Order> getOrders(){return orders;}
 }
+

@@ -19,8 +19,8 @@ public class ProductController {
     ProductService productService;
 
     @PostMapping("/add")
-    public Response addProduct(@RequestBody Product p) {
-        boolean res = productService.addProduct(p);
+    public Response addProduct(@RequestBody Product product) {
+        boolean res = productService.addProduct(product);
         Response response = new Response();
         if (!res) {
             response.setStatus(false);
@@ -30,6 +30,27 @@ public class ProductController {
 
         response.setStatus(true);
         response.setMessage("Product is added successfully");
+        return response;
+    }
+
+    @PostMapping("/addProducts")
+    public Response addProducts(@RequestBody ArrayList<Product> products) {
+        Response response = new Response();
+
+        for (Product product: products){
+            if(productService.get(product.getSerialNumber()) != null){
+                response.setStatus(false);
+                response.setMessage("Product Already Exists");
+                return response;
+            }
+        }
+
+        for (Product product: products){
+            productService.addProduct(product);
+        }
+
+        response.setStatus(true);
+        response.setMessage("Products are added successfully");
         return response;
     }
 
@@ -52,7 +73,6 @@ public class ProductController {
     public ArrayList<Product> getAll() {
         return productService.getProducts();
     }
-
 
     @GetMapping("/get/{serialNumber}")
     public ProductResponse getProduct(@PathVariable("serialNumber") int serialNumber) {

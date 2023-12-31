@@ -1,6 +1,6 @@
 package com.management.OrderNotificationAPI.controller;
 
-import com.management.OrderNotificationAPI.InMemoryDB;
+import com.management.OrderNotificationAPI.repo.InMemoryDB;
 import com.management.OrderNotificationAPI.model.*;
 import com.management.OrderNotificationAPI.model.request.OrderRequest;
 import com.management.OrderNotificationAPI.model.response.OrderResponse;
@@ -32,8 +32,10 @@ public class OrderController {
     @Autowired
     NotificationService notificationService = new NotificationService();
 
-    @GetMapping("/check/simple")
-    public OrderResponse checkSimpleOrder(@RequestBody OrderRequest orderRequest){
+    // validate simple order
+    // check on account, account balance, products
+    @GetMapping("/validate/simple")
+    public OrderResponse validateSimpleOrder(@RequestBody OrderRequest orderRequest){
         OrderResponse response = new OrderResponse();
         if(accountService.getAccount(orderRequest.getUsername()) == null){
             response.setStatus(false);
@@ -67,7 +69,7 @@ public class OrderController {
     @PostMapping("/place/simple")
     public OrderResponse placeSimpleOrder(@RequestBody OrderRequest orderRequest) {
 
-        OrderResponse r = checkSimpleOrder(orderRequest);
+        OrderResponse r = validateSimpleOrder(orderRequest);
         if (!r.getStatus()) {
             return r;
         }
@@ -79,7 +81,7 @@ public class OrderController {
         }
 
         SimpleOrder newOrder = new SimpleOrder(products,
-                accountService.getAccount(orderRequest.getUsername()),
+                orderRequest.getUsername(),
                 orderService.generateID(),
                 orderRequest.getLocation());
 
@@ -93,9 +95,13 @@ public class OrderController {
 
         // deducted total cost of order from account
         double amount = newOrder.calculateTotalProductCost();
-        accountService.deduce(orderRequest.getUsername(), amount);
+        accountService.deduceBalance(orderRequest.getUsername(), amount);
 
-        Notification orderPlacementNotification = new OrderPlacementNotification(newOrder.getAccount().getLanguage(), Template.OrderPlacement, newOrder.getAccount(), newOrder.getProducts());
+        Notification orderPlacementNotification =
+                new OrderPlacementNotification(accountService.getAccount(newOrder.getUsername()).getUserInfo().getLanguage(),
+                Template.OrderPlacement,
+                        accountService.getAccount(newOrder.getUsername()).getUserInfo(),
+                        newOrder.getProducts());
         notificationService.send(orderPlacementNotification);
 
         response.setStatus(true);
@@ -108,13 +114,12 @@ public class OrderController {
     @PostMapping("/place/compound")
     public OrderResponse placeCompoundOrder(@RequestBody OrderRequest orderRequest) {
 
-        OrderResponse r = checkSimpleOrder(orderRequest);
+        OrderResponse r = validateSimpleOrder(orderRequest);
         if(!r.getStatus()){
             return r;
         }
 
         Order simpleOrder = placeSimpleOrder(orderRequest).getOrder();
-        Account user = accountService.getAccount(orderRequest.getUsername());
 
         OrderResponse response = new OrderResponse();
         Order compoundOrder = new CompoundOrder(orderService.generateID());
@@ -131,16 +136,70 @@ public class OrderController {
         compoundOrder.calculateTotalProductCost();
 
         double shippingFees = compoundOrder.calculateTotalShipping() / compoundOrder.calculateNumberOfOrder();
-        compoundOrder.setShippingFees(shippingFees);
+        compoundOrder.putShippingFees(shippingFees);
+
+        orderService.placeOrder(compoundOrder);
 
 
-        Notification orderPlacementNotification = new OrderPlacementNotification(user.getLanguage(), Template.OrderPlacement, user, simpleOrder.getProducts());
+        Account user = accountService.getAccount(orderRequest.getUsername());
+
+        Notification orderPlacementNotification = new OrderPlacementNotification(
+                user.getUserInfo().getLanguage(),
+                Template.OrderPlacement,
+                user.getUserInfo(),
+                simpleOrder.bringSimpleOrders().get(0).getProducts());
         notificationService.send(orderPlacementNotification);
 
         response.setStatus(true);
         response.setMessage("Order is placed successfully");
         response.setOrder(compoundOrder);
 
+        return response;
+    }
+
+    @PutMapping("/shipment/{ID}")
+    public Response shipOrder(@RequestParam("ID") int ID){
+        Response response = new Response();
+        if(!orderService.isExist(ID)){
+            response.setStatus(false);
+            response.setMessage("Order is not placed");
+            return response;
+        }
+
+        Order order = orderService.getOrder(ID);
+        ArrayList<SimpleOrder> simpleOrders = order.bringSimpleOrders();
+        for (SimpleOrder simpleOrder: simpleOrders) {
+            if(!simpleOrder.getState().equals(State.Placed)){
+                response.setStatus(false);
+                response.setMessage("Your Order has been shipped or delivered already");
+                return response;
+            }
+
+            if(!accountService.checkBalance(simpleOrder.getUsername(), simpleOrder.calculateTotalShipping())){
+                response.setStatus(false);
+                response.setMessage("Account with username " + simpleOrder.getUsername() + " doesn't have enough shipping money");
+                return response;
+            }
+
+        }
+
+        for (SimpleOrder simpleOrder: simpleOrders) {
+            simpleOrder.setState(State.Shipped);
+            accountService.deduceBalance(simpleOrder.getUsername(), simpleOrder.calculateTotalShipping());
+            simpleOrder.putShippingFees(simpleOrder.calculateTotalShipping());
+            simpleOrder.setShippingDate(LocalDateTime.now());
+
+            Notification orderShipmentNotification = new OrderShippmentNotification(
+                    accountService.getAccount(simpleOrder.getUsername()).getUserInfo().getLanguage(),
+                    Template.OrderShipment,
+                    accountService.getAccount(simpleOrder.getUsername()).getUserInfo(),
+                    simpleOrder.calculateTotalProductCost() + simpleOrder.calculateTotalShipping(),
+                    simpleOrder.getID());
+            notificationService.send(orderShipmentNotification);
+        }
+
+        response.setStatus(true);
+        response.setMessage("Order shipped successfully");
         return response;
     }
 
@@ -155,34 +214,35 @@ public class OrderController {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        double timePassed = ChronoUnit.MILLIS.between(now, orderService.getOrder(ID).getCreatedDate());
-        double canCancelTime = 1000 * 60 * 60 * 24; //a day
+        long timePassed = ChronoUnit.MILLIS.between(orderService.getOrder(ID).getCreatedDate(), now);
+        // long canCancelTime = 1000 * 60 * 60 * 24; // a day
+        long canCancelTime = 1000 * 60; // a minute
+        System.out.println(timePassed);
         if(timePassed > canCancelTime){
             response.setMessage("Can't cancel the order as it has been placed since more than a day");
             response.setStatus(false);
             return response;
         }
 
-        ArrayList<SimpleOrder> simpleOrders = orderService.getOrder(ID).getSimpleOrders();
+        ArrayList<SimpleOrder> simpleOrders = orderService.getOrder(ID).bringSimpleOrders();
 
         for (SimpleOrder simpleOrder: simpleOrders){
             for (Product product: simpleOrder.getProducts()){
                 productService.addProduct(product);
             }
-            accountService.add(simpleOrder.getAccount().getUsername(), simpleOrder.calculateTotalProductCost());
+            accountService.incrementBalance(simpleOrder.getUsername(), simpleOrder.calculateTotalProductCost());
             orderService.cancelPlacement(simpleOrder.getID());
         }
-        orderService.cancelPlacement(ID);
 
+        orderService.cancelPlacement(ID);
         response.setMessage("Order " + ID + " canceled successfully");
         response.setStatus(true);
-
         return response;
     }
 
+    @PutMapping("/cancelShipment/{ID}")
+    public Response cancelShipment(@RequestParam("ID") int ID){
 
-    @GetMapping("/shipment/{id}")
-    public Response shipOrder(@PathVariable("id") int ID){
         Response response = new Response();
         if(!orderService.isExist(ID)){
             response.setStatus(false);
@@ -190,49 +250,7 @@ public class OrderController {
             return response;
         }
 
-        Order order = orderService.getOrder(ID);
-        ArrayList<SimpleOrder> simpleOrders = order.getSimpleOrders();
-        for (SimpleOrder simpleOrder: simpleOrders) {
-            if(!simpleOrder.getState().equals(State.Placed)){
-                response.setStatus(false);
-                response.setMessage("Your Order has been shipped or delivered already");
-                return response;
-            }
-
-            if(!accountService.checkBalance(simpleOrder.getAccount().getUsername(), simpleOrder.calculateTotalShipping())){
-                response.setStatus(false);
-                response.setMessage("Account with username " + simpleOrder.getAccount().getUsername() + " doesn't have enough shipping money");
-                return response;
-            }
-
-        }
-
-        for (SimpleOrder simpleOrder: simpleOrders) {
-            simpleOrder.setState(State.Shipped);
-            accountService.deduce(simpleOrder.getAccount().getUsername(), simpleOrder.calculateTotalShipping());
-            Notification orderShipmentNotification = new OrderShippmentNotification(simpleOrder.getAccount().getLanguage(),
-                    Template.OrderShipment, simpleOrder.getAccount(),
-                    simpleOrder.calculateTotalProductCost() + simpleOrder.calculateTotalShipping(),
-                    simpleOrder.getID());
-            notificationService.send(orderShipmentNotification);
-        }
-
-        response.setStatus(true);
-        response.setMessage("Order shipped successfully");
-        return response;
-    }
-
-
-    @GetMapping("/cancelShipment/{ID}")
-    public Response cancelShipment(@PathVariable int ID){
-        Response response = new Response();
-        if(!orderService.isExist(ID)){
-            response.setStatus(false);
-            response.setMessage("Order is not placed");
-            return response;
-        }
-
-        ArrayList<SimpleOrder> simpleOrders = orderService.getOrder(ID).getSimpleOrders();
+        ArrayList<SimpleOrder> simpleOrders = orderService.getOrder(ID).bringSimpleOrders();
 
         for (SimpleOrder simpleOrder: simpleOrders) {
             if(simpleOrder.getState() != State.Shipped){
@@ -242,8 +260,9 @@ public class OrderController {
             }
 
             LocalDateTime now = LocalDateTime.now();
-            double timePassed = ChronoUnit.MILLIS.between(now, simpleOrder.getCreatedDate());
-            double canCancelTime = 1000 * 60 * 60 * 24; //a day
+            long timePassed = ChronoUnit.MILLIS.between(simpleOrder.getShippingDate(), now);
+//            double canCancelTime = 1000 * 60 * 60 * 24; //a day
+            long canCancelTime = 1000 * 60; //a minute
             if(timePassed > canCancelTime){
                 response.setMessage("Can't cancel the order " + ID + " as it has been shipped since more than a day");
                 response.setStatus(false);
@@ -252,9 +271,11 @@ public class OrderController {
         }
 
         for (SimpleOrder simpleOrder: simpleOrders){
-            Account account = simpleOrder.getAccount();
+            Account account = accountService.getAccount(simpleOrder.getUsername());
             simpleOrder.setState(State.Placed);
-            accountService.add(account.getUsername(), account.getBalance()+ simpleOrder.calculateTotalShipping());
+            simpleOrder.putShippingFees(0);
+            simpleOrder.setShippingDate(null);
+            accountService.incrementBalance(account.getUsername(), account.getBalance() + simpleOrder.calculateTotalShipping());
         }
 
         response.setStatus(true);
@@ -268,7 +289,7 @@ public class OrderController {
         Order order = orderService.getOrder(ID);
         if(order == null){
             orderResponse.setStatus(false);
-            orderResponse.setMessage("Product doesn't exist");
+            orderResponse.setMessage("Order doesn't exist");
             return orderResponse;
         }
 

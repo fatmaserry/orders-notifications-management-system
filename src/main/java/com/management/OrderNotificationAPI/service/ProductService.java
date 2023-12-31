@@ -1,11 +1,10 @@
 package com.management.OrderNotificationAPI.service;
 
-import com.management.OrderNotificationAPI.InMemoryDB;
+import com.management.OrderNotificationAPI.repo.InMemoryDB;
 import com.management.OrderNotificationAPI.model.Product;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 
 @Service

@@ -1,12 +1,10 @@
 package com.management.OrderNotificationAPI.model;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Getter;
-import java.io.Serializable;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-@Getter
 @JsonTypeInfo(
         include = JsonTypeInfo.As.EXISTING_PROPERTY,
         property = "orderType",
@@ -18,11 +16,23 @@ import java.util.ArrayList;
         @JsonSubTypes.Type(value = CompoundOrder.class, name = "COMPOUND")
 })
 
-public abstract class Order implements Serializable {
+public abstract class Order{
     private double totalProductCost;
     private int ID;
-    private LocalDateTime createdDate;
+    private LocalDateTime createdDate, shippingDate;
     private final OrderType orderType;
+
+    public double getTotalProductCost() {
+        return totalProductCost;
+    }
+
+    public int getID() {
+        return ID;
+    }
+
+    public OrderType getOrderType() {
+        return orderType;
+    }
 
     Order(int ID, OrderType orderType){
         this.orderType = orderType;
@@ -38,39 +48,37 @@ public abstract class Order implements Serializable {
         throw new UnsupportedOperationException();
     }
 
-    public double calculateTotalProductCost() {
-        return 0;
-    }
+    public abstract double calculateTotalProductCost();
 
-    public double calculateTotalShipping() {
-        return 0;
-    }
+    public abstract double calculateTotalShipping();
 
-    public int calculateNumberOfOrder() {
-        return 0;
-    }
+    public abstract int calculateNumberOfOrder();
 
-    public void setShippingFees(double fees) {
+    public abstract void putShippingFees(double fees);
 
-    }
-    public ArrayList<SimpleOrder> getSimpleOrders(){
+    public ArrayList<SimpleOrder> bringSimpleOrders(){
         return null;
     }
-    public ArrayList<Product> getProducts(){
-        return null;
-    }
-
 
     public void setTotalProductCost(double totalProductCost) {
              this.totalProductCost = totalProductCost;
     }
 
-    public void setDate(LocalDateTime createdDate) {
+    public void setCreatedDate(LocalDateTime createdDate) {
             this.createdDate = createdDate;
     }
+
+    public LocalDateTime getCreatedDate(){return createdDate;}
 
     public void setID(int ID) {
             this.ID = ID;
     }
 
+    public LocalDateTime getShippingDate() {
+        return shippingDate;
+    }
+
+    public void setShippingDate(LocalDateTime shippingDate) {
+        this.shippingDate = shippingDate;
+    }
 }

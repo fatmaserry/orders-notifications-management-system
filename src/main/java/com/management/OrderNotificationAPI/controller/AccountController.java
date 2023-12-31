@@ -1,5 +1,6 @@
 package com.management.OrderNotificationAPI.controller;
 import com.management.OrderNotificationAPI.model.Account;
+import com.management.OrderNotificationAPI.model.request.LoginRequest;
 import com.management.OrderNotificationAPI.model.response.AccountResponse;
 import com.management.OrderNotificationAPI.model.response.Response;
 import com.management.OrderNotificationAPI.service.AccountService;
@@ -32,16 +33,16 @@ public class AccountController {
         return response;
     }
 
-    @GetMapping("/login/{username}/{password}")
-    public Response login(@PathVariable("username") String username, @PathVariable("password") String password) {
+    @PostMapping("/login")
+    public Response login(@RequestBody LoginRequest loginRequest) {
         AccountResponse response = new AccountResponse();
-        Account account = accountService.getAccount(username);
+        Account account = accountService.getAccount(loginRequest.getUsername());
         if(account == null){
             response.setMessage("Account doesn't exist");
             response.setStatus(false);
         }
         else{
-            if(account.getPassword().equals(password)) {
+            if(account.getPassword().equals(loginRequest.getPassword())) {
                 response.setMessage("Login successfully");
                 response.setStatus(true);
                 response.setAccount(account);

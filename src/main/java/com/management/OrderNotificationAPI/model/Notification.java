@@ -2,6 +2,7 @@ package com.management.OrderNotificationAPI.model;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.apache.catalina.User;
 
 import java.time.LocalDateTime;
 
@@ -20,11 +21,13 @@ public class Notification {
     private Language language;
     private Template template;
     private String content;
-    private Account receiver;
+    private UserInfo receiver;
     private Channel channel;
     private LocalDateTime createdAt;
 
-    public Notification(Language language, Template template, Account receiver) {
+    public Notification(){}
+
+    public Notification(Language language, Template template, UserInfo receiver) {
         this.language = language;
         this.template = template;
         this.receiver = receiver;
@@ -64,11 +67,11 @@ public class Notification {
         this.content = content;
     }
 
-    public Account getReceiver() {
+    public UserInfo getReceiver() {
         return receiver;
     }
 
-    public void setReceiver(Account receiver) {
+    public void setReceiver(UserInfo receiver) {
         this.receiver = receiver;
     }
 
