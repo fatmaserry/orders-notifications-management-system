@@ -13,8 +13,8 @@ public class SMS extends SendingDecorator {
     @Override
     public boolean send(Notification notification) {
         super.send(notification);
-//        Notification sendnotification = new Notification(notification);
-//        sendnotification.setChannel(Channel.SMS);
+        Notification sendnotification = new Notification(notification);
+        sendnotification.setChannel(Channel.SMS);
         InMemoryDB.createdNotifications.add(notification);
         return true;
     }

@@ -1,6 +1,10 @@
 package com.management.OrderNotificationAPI.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+
 import java.util.ArrayList;
 
+@Getter
 public class SimpleOrder extends Order{
     private Account account;
     private ArrayList<Product> products;
@@ -16,13 +20,13 @@ public class SimpleOrder extends Order{
         this.shippingFees = 0;
     }
 
-//    public SimpleOrder(Order order){
-//        super(order.getID(), order.getOrderType());
-////        this.products = order.getProducts();
-////        this.account = order.getAccount();
-////        this.location = order.getLocation();
-////        this.shippingFees = order.getShippingFees();
-//    }
+    public SimpleOrder(SimpleOrder order){
+        super(order.getID(),OrderType.SIMPLE);
+        this.products = order.getProducts();
+        this.account = order.getAccount();
+        this.location = order.getLocation();
+        this.shippingFees = order.getShippingFees();
+    }
 
     public double calculateTotalProductCost() {
         double cost = 0;
@@ -41,26 +45,9 @@ public class SimpleOrder extends Order{
         return 1;
     }
 
-    public ArrayList<SimpleOrder> getSimpleOrders(){
-        ArrayList<SimpleOrder>simpleOrders = new ArrayList<>();
-        simpleOrders.add(this);
-        return simpleOrders;
-    }
 
     public void setShippingFees(double fees) {
         this.shippingFees = fees;
-    }
-
-    public double getShippingFees() {
-        return shippingFees;
-    }
-
-    public ArrayList<Product> getProducts(){
-        return products;
-    }
-
-    public Account getAccount() {
-        return account;
     }
 
     public void setAccount(Account account) {
@@ -75,16 +62,8 @@ public class SimpleOrder extends Order{
         this.state = state;
     }
 
-    public State getState() {
-        return state;
-    }
-
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    public String getLocation() {
-        return location;
     }
 
 }

@@ -1,11 +1,9 @@
 package com.management.OrderNotificationAPI.controller;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.management.OrderNotificationAPI.InMemoryDB;
 import com.management.OrderNotificationAPI.model.*;
 import com.management.OrderNotificationAPI.model.request.OrderRequest;
 import com.management.OrderNotificationAPI.model.response.OrderResponse;
-import com.management.OrderNotificationAPI.model.response.ProductResponse;
 import com.management.OrderNotificationAPI.model.response.Response;
 import com.management.OrderNotificationAPI.service.AccountService;
 import com.management.OrderNotificationAPI.service.NotificationService;
@@ -13,14 +11,10 @@ import com.management.OrderNotificationAPI.service.OrderService;
 import com.management.OrderNotificationAPI.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import javax.security.auth.Subject;
-import java.lang.reflect.Array;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/order")
@@ -70,11 +64,11 @@ public class OrderController {
         return response;
     }
 
-    @PostMapping("/placeSimple")
+    @PostMapping("/place/simple")
     public OrderResponse placeSimpleOrder(@RequestBody OrderRequest orderRequest) {
 
         OrderResponse r = checkSimpleOrder(orderRequest);
-        if (!r.isStatus()) {
+        if (!r.getStatus()) {
             return r;
         }
 
@@ -115,13 +109,14 @@ public class OrderController {
     public OrderResponse placeCompoundOrder(@RequestBody OrderRequest orderRequest) {
 
         OrderResponse r = checkSimpleOrder(orderRequest);
-        if(!r.isStatus()){
+        if(!r.getStatus()){
             return r;
         }
 
         Order simpleOrder = placeSimpleOrder(orderRequest).getOrder();
-        OrderResponse response = new OrderResponse();
+        Account user = accountService.getAccount(orderRequest.getUsername());
 
+        OrderResponse response = new OrderResponse();
         Order compoundOrder = new CompoundOrder(orderService.generateID());
         compoundOrder.addOrder(simpleOrder);
 
@@ -139,7 +134,7 @@ public class OrderController {
         compoundOrder.setShippingFees(shippingFees);
 
 
-        Notification orderPlacementNotification = new OrderPlacementNotification(simpleOrder.getSimpleOrders().get(0).getAccount().getLanguage(), Template.OrderPlacement, simpleOrder.getSimpleOrders().get(0).getAccount(), simpleOrder.getSimpleOrders().get(0).getProducts());
+        Notification orderPlacementNotification = new OrderPlacementNotification(user.getLanguage(), Template.OrderPlacement, user, simpleOrder.getProducts());
         notificationService.send(orderPlacementNotification);
 
         response.setStatus(true);
@@ -297,8 +292,4 @@ public class OrderController {
         return null;
     }
 
-    @PostMapping("/fun")
-    public SimpleOrder fun(@RequestBody SimpleOrder order){
-        return order;
-    }
 }

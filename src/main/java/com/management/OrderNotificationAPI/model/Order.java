@@ -1,12 +1,12 @@
 package com.management.OrderNotificationAPI.model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
+import lombok.Getter;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
+@Getter
 @JsonTypeInfo(
         include = JsonTypeInfo.As.EXISTING_PROPERTY,
         property = "orderType",
@@ -22,7 +22,7 @@ public abstract class Order implements Serializable {
     private double totalProductCost;
     private int ID;
     private LocalDateTime createdDate;
-    private OrderType orderType;
+    private final OrderType orderType;
 
     Order(int ID, OrderType orderType){
         this.orderType = orderType;
@@ -53,35 +53,24 @@ public abstract class Order implements Serializable {
     public void setShippingFees(double fees) {
 
     }
-
     public ArrayList<SimpleOrder> getSimpleOrders(){
-        ArrayList<SimpleOrder> arr = new ArrayList<>();
-        return arr;
+        return null;
     }
+    public ArrayList<Product> getProducts(){
+        return null;
+    }
+
 
     public void setTotalProductCost(double totalProductCost) {
              this.totalProductCost = totalProductCost;
-    }
-
-    public double getTotalProductCost() {
-        return totalProductCost;
     }
 
     public void setDate(LocalDateTime createdDate) {
             this.createdDate = createdDate;
     }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
     public void setID(int ID) {
             this.ID = ID;
     }
 
-    public int getID() {
-        return ID;
-    }
-
-    public OrderType getOrderType(){return orderType;}
 }

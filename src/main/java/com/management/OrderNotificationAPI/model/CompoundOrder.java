@@ -1,15 +1,17 @@
 package com.management.OrderNotificationAPI.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
 
 import java.util.ArrayList;
 
 
+@Getter
 public class CompoundOrder extends Order{
     private ArrayList<Order> orders;
 
-
     public CompoundOrder(int ID){
         super(ID,OrderType.COMPOUND);
+        this.orders = new ArrayList<>();
     }
     public CompoundOrder(Order order){
         super(order.getID(), OrderType.COMPOUND);
@@ -56,7 +58,11 @@ public class CompoundOrder extends Order{
 
     public ArrayList<SimpleOrder> getSimpleOrders(){
         ArrayList<SimpleOrder> simpleOrders = new ArrayList<>();
-        for (Order order: orders){
+        for (Order order: orders) {
+            if (order instanceof SimpleOrder){
+                simpleOrders.add((SimpleOrder) order);
+                continue;
+            }
             ArrayList<SimpleOrder> ret = order.getSimpleOrders();
             simpleOrders.addAll(ret);
         }
@@ -67,7 +73,4 @@ public class CompoundOrder extends Order{
              this.orders = orders;
     }
 
-    public ArrayList<Order> getOrders() {
-             return orders;
-    }
 }

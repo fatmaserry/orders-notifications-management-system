@@ -13,8 +13,8 @@ public class Email extends SendingDecorator{
     @Override
     public  boolean send(Notification notification) {
         super.send(notification);
-//        Notification sendnotification = new Notification(notification);
-//        sendnotification.setChannel(Channel.Email);
+        Notification sendnotification = new Notification(notification);
+        sendnotification.setChannel(Channel.Email);
         InMemoryDB.createdNotifications.add(notification);
         return true;
     }
