@@ -158,7 +158,7 @@ public class OrderController {
     }
 
     @PutMapping("/shipment/{ID}")
-    public Response shipOrder(@RequestParam("ID") int ID){
+    public Response shipOrder(@PathVariable("ID") int ID){
         Response response = new Response();
         if(!orderService.isExist(ID)){
             response.setStatus(false);
@@ -241,7 +241,7 @@ public class OrderController {
     }
 
     @PutMapping("/cancelShipment/{ID}")
-    public Response cancelShipment(@RequestParam("ID") int ID){
+    public Response cancelShipment(@PathVariable("ID") int ID){
 
         Response response = new Response();
         if(!orderService.isExist(ID)){
