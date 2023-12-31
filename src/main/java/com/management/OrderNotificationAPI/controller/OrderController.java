@@ -62,6 +62,7 @@ public class OrderController {
             return response;
         }
 
+        response.setMessage("Simple Order is valid");
         response.setStatus(true);
         return response;
     }
