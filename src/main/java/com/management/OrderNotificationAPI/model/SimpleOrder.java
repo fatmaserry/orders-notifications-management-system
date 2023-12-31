@@ -1,6 +1,5 @@
 package com.management.OrderNotificationAPI.model;
 import java.util.ArrayList;
-import java.util.List;
 
 public class SimpleOrder extends Order{
     private Account account;
@@ -9,36 +8,83 @@ public class SimpleOrder extends Order{
     private String location;
     private double shippingFees;
 
-    @Override
-    public void addOrder() {
-
+    public SimpleOrder(ArrayList<Product> products,Account account, int ID, String location){
+        super(ID, OrderType.SIMPLE);
+        this.products = products;
+        this.account = account;
+        this.location = location;
+        this.shippingFees = 0;
     }
-    @Override
-    public List<Product> getItem(){
+
+//    public SimpleOrder(Order order){
+//        super(order.getID(), order.getOrderType());
+////        this.products = order.getProducts();
+////        this.account = order.getAccount();
+////        this.location = order.getLocation();
+////        this.shippingFees = order.getShippingFees();
+//    }
+
+    public double calculateTotalProductCost() {
+        double cost = 0;
+        for (Product p: this.products) {
+            cost += p.getPrice();
+        }
+        super.setTotalProductCost(cost);
+        return cost;
+    }
+
+    public double calculateTotalShipping() {
+        return 100;
+    }
+
+    public int calculateNumberOfOrder() {
+        return 1;
+    }
+
+    public ArrayList<SimpleOrder> getSimpleOrders(){
+        ArrayList<SimpleOrder>simpleOrders = new ArrayList<>();
+        simpleOrders.add(this);
+        return simpleOrders;
+    }
+
+    public void setShippingFees(double fees) {
+        this.shippingFees = fees;
+    }
+
+    public double getShippingFees() {
+        return shippingFees;
+    }
+
+    public ArrayList<Product> getProducts(){
         return products;
     }
-    @Override
-    public void removeOrder() {
 
+    public Account getAccount() {
+        return account;
     }
 
-    @Override
-    public double calculateTotalProductCost() {
-        return 0;
+    public void setAccount(Account account) {
+        this.account = account;
     }
 
-    @Override
-    public double calculateTotalShipping() {
-        return 0;
+    public void setProducts(ArrayList<Product> products) {
+        this.products = products;
     }
 
-    @Override
-    public int calculateNumberOfOrder() {
-        return 0;
+    public void setState(State state) {
+        this.state = state;
     }
 
-    @Override
-    public void setShippingFees(double fees) {
-
+    public State getState() {
+        return state;
     }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
 }

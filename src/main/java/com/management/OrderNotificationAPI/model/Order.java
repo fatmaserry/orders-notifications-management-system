@@ -1,49 +1,87 @@
 package com.management.OrderNotificationAPI.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import java.util.Date;
-import java.time.LocalDate;
-import java.util.List;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 
-public abstract class Order {
+@JsonTypeInfo(
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "orderType",
+        use = JsonTypeInfo.Id.NAME,
+        visible = true
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = SimpleOrder.class, name = "SIMPLE"),
+        @JsonSubTypes.Type(value = CompoundOrder.class, name = "COMPOUND")
+})
+
+public abstract class Order implements Serializable {
     private double totalProductCost;
-    private LocalDate date;
     private int ID;
+    private LocalDateTime createdDate;
+    private OrderType orderType;
 
-    public abstract void addOrder();
+    Order(int ID, OrderType orderType){
+        this.orderType = orderType;
+        this.createdDate = LocalDateTime.now();
+        this.ID = ID;
+    }
 
-    public abstract void removeOrder();
+    public void addOrder(Order order){
+        throw new UnsupportedOperationException();
+    }
 
-    public abstract List<Product> getItem();
+    public void removeOrder(Order order){
+        throw new UnsupportedOperationException();
+    }
 
-    public abstract double calculateTotalProductCost();
+    public double calculateTotalProductCost() {
+        return 0;
+    }
 
-    public abstract double calculateTotalShipping();
+    public double calculateTotalShipping() {
+        return 0;
+    }
 
-    public abstract int calculateNumberOfOrder();
+    public int calculateNumberOfOrder() {
+        return 0;
+    }
 
-    public abstract void setShippingFees(double fees);
+    public void setShippingFees(double fees) {
+
+    }
+
+    public ArrayList<SimpleOrder> getSimpleOrders(){
+        ArrayList<SimpleOrder> arr = new ArrayList<>();
+        return arr;
+    }
+
+    public void setTotalProductCost(double totalProductCost) {
+             this.totalProductCost = totalProductCost;
+    }
 
     public double getTotalProductCost() {
         return totalProductCost;
     }
 
-    public void setTotalProductCost(double totalProductCost) {
-        this.totalProductCost = totalProductCost;
+    public void setDate(LocalDateTime createdDate) {
+            this.createdDate = createdDate;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void setID(int ID) {
+            this.ID = ID;
     }
 
     public int getID() {
         return ID;
     }
 
-    public void setID(int ID) {
-        this.ID = ID;
-    }
+    public OrderType getOrderType(){return orderType;}
 }

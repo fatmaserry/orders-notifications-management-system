@@ -1,20 +1,22 @@
 package com.management.OrderNotificationAPI.service;
+
 import com.management.OrderNotificationAPI.InMemoryDB;
 import com.management.OrderNotificationAPI.model.Account;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 @Service
 public class AccountService {
     public Boolean addAccount(Account p) {
         try {
-            if(InMemoryDB.accounts.get(p.getUsername()) != null){
+            if (InMemoryDB.accounts.get(p.getUsername()) != null) {
                 return false;
             }
             InMemoryDB.accounts.put(p.getUsername(), p);
         } catch (Exception e) {
-            System.out.println("Exception in addPerson as" + e.getMessage());
+            System.out.println("Exception in addAccount as" + e.getMessage());
             return false;
         }
         return true;
@@ -24,24 +26,39 @@ public class AccountService {
         try {
             return InMemoryDB.accounts.get(username);
         } catch (Exception e) {
-            System.out.println("Exception in getPerson as" + e.getMessage());
+            System.out.println("Exception in getAccount as" + e.getMessage());
         }
         return null;
     }
 
-    public Account[] getAllAccounts() {
+    public ArrayList<Account> getAllAccounts() {
         try {
-            Set<String> ids = InMemoryDB.accounts.keySet();
-            Account[] p = new Account[ids.size()];
-            int i=0;
-            for(String id : ids){
-                p[i] = InMemoryDB.accounts.get(id);
-                i++;
-            }
-            return p;
-        } catch (Exception e) {
-            System.out.println("Exception in getAllPersons as" + e.getMessage());
+            ArrayList<Account> accounts = new ArrayList<>();
+            accounts.addAll(InMemoryDB.accounts.values());
+            return accounts;
+        }
+        catch (Exception e) {
+            System.out.println("Exception in getAllAccounts as" + e.getMessage());
         }
         return null;
+    }
+
+    public void deduce(String username, double amount) {
+        Account account = getAccount(username);
+        double newBalance = account.getBalance() - amount;
+        account.setBalance(newBalance);
+    }
+
+    public void add(String username, double amount) {
+        Account account = getAccount(username);
+        double newBalance = account.getBalance() + amount;
+        account.setBalance(newBalance);
+    }
+
+    public boolean checkBalance(String username, double amount) {
+        Account account = getAccount(username);
+        if (account.getBalance() >= amount)
+            return true;
+        return false;
     }
 }

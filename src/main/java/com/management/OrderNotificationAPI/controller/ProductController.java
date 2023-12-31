@@ -1,23 +1,25 @@
 package com.management.OrderNotificationAPI.controller;
 import com.management.OrderNotificationAPI.model.Category;
 import com.management.OrderNotificationAPI.model.Product;
+import com.management.OrderNotificationAPI.model.response.ProductResponse;
 import com.management.OrderNotificationAPI.model.response.Response;
 import com.management.OrderNotificationAPI.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/product")
 public class ProductController {
 
     @Autowired
     ProductService productService;
 
-    @PostMapping("/addProduct")
+    @PostMapping("/add")
     public Response addProduct(@RequestBody Product p) {
-        System.out.println("in add person" + p);
         boolean res = productService.addProduct(p);
         Response response = new Response();
         if (!res) {
@@ -31,7 +33,7 @@ public class ProductController {
         return response;
     }
 
-    @DeleteMapping("/deleteProduct/{serialNumber}")
+    @DeleteMapping("/delete/{serialNumber}")
     public Response deleteProduct(@PathVariable("serialNumber") int serialNumber) {
         Response response = new Response();
         boolean res = productService.deleteProduct(serialNumber);
@@ -46,20 +48,31 @@ public class ProductController {
         return response;
     }
 
-    @GetMapping("/getAllProducts")
-    public Product[] getAll() {
+    @GetMapping("/get")
+    public ArrayList<Product> getAll() {
         return productService.getProducts();
     }
 
 
-    @GetMapping("/getProduct/{serialNumber}")
-    public Product getProduct(@PathVariable("serialNumber") int serialNumber) {
-        return productService.get(serialNumber);
+    @GetMapping("/get/{serialNumber}")
+    public ProductResponse getProduct(@PathVariable("serialNumber") int serialNumber) {
+        ProductResponse response = new ProductResponse();
+        Product product = productService.get(serialNumber);
+        if(product == null){
+            response.setMessage("Product doesn't exist");
+            response.setStatus(false);
+        }
+        else{
+            response.setMessage("success");
+            response.setStatus(true);
+            response.setProduct(product);
+        }
+        return response;
     }
 
-    @GetMapping("/countProducts")
+    @GetMapping("/countPerCategory")
     public Map<Category,Integer> countProductsPerCategory() {
-        Product[] products = productService.getProducts();
+        ArrayList<Product> products = productService.getProducts();
         Map<Category, Integer> countedProducts = new HashMap<>();
         for (Product p: products) {
             if (!countedProducts.containsKey(p.getCategory()))

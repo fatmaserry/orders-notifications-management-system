@@ -3,6 +3,8 @@ package com.management.OrderNotificationAPI.service;
 import com.management.OrderNotificationAPI.InMemoryDB;
 import com.management.OrderNotificationAPI.model.Product;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.Set;
 
 
@@ -33,16 +35,11 @@ public class ProductService {
         return false;
     }
 
-    public Product[] getProducts() {
+    public ArrayList<Product> getProducts() {
         try {
-            Set<Integer> ids = InMemoryDB.products.keySet();
-            Product[] p = new Product[ids.size()];
-            int i=0;
-            for(Integer id : ids){
-                p[i] = InMemoryDB.products.get(id);
-                i++;
-            }
-            return p;
+            ArrayList<Product> products = new ArrayList<>();
+            products.addAll(InMemoryDB.products.values());
+            return products;
         } catch (Exception e) {
             System.out.println("Exception in getProducts as" + e.getMessage());
         }
@@ -58,6 +55,4 @@ public class ProductService {
         }
         return null;
     }
-
-
 }

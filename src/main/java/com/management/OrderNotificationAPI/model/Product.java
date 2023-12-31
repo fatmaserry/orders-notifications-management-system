@@ -2,10 +2,10 @@ package com.management.OrderNotificationAPI.model;
 
 public class Product {
     private int serialNumber;
-    private String name;
-    private String vendor;
+    private String name, vendor;
     private Category category;
     private double price;
+
     public int getSerialNumber() {
         return serialNumber;
     }
